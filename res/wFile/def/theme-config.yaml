@@ -1,0 +1,53 @@
+title: "成就查漏结果           # 头部标题文本"
+backgroundColor: '"#000000"  # 页面背景颜色'
+textColor: '"#ffffff"         # 全局文本颜色'
+backgroundImage: "bg.png      # 默认背景图片文件名（在bg文件夹中）"
+randomBackground: "true       # 是否使用随机本地背景图片"
+useApiBackground: "false       # 是否使用API获取背景图片"
+url: "https://api.acgurl.link  # API地址"
+method: "GET                  # 请求方法"
+params: "# 请求参数"
+type: "yss                  # 图片类型（原神相关）"
+json: '"true"               # 是否返回JSON格式'
+headers: "{}                  # 请求头"
+timeout: "10000               # 超时时间（毫秒）"
+retryCount: "3                # 重试次数"
+retryInterval: "1000          # 重试间隔（毫秒）"
+padding: "0px                   # 页面内边距"
+width: "620                  # 宽度"
+height: "80                  # 高度"
+titleColor: '"#FFD700"         # 分类标题颜色'
+titleSize: "24                 # 分类标题字体大小"
+uidColor: '"#FFFFFF"           # UID文本颜色'
+pageInfoColor: '"#CCCCCC"      # 页码信息颜色'
+statsColor: '"#FFFFFF"       # 分类统计颜色'
+background: "# 成就项背景配置"
+autoHeight: "true            # 是否自动调整高度"
+borderRadius: "12            # 边框圆角"
+color: "rgba(0, 0, 0, 0.7)  # 阴影颜色"
+blur: "2               # 阴影模糊度"
+shadow: "false                 # 是否显示阴影"
+spacing: "20                   # 分类间距"
+showId: "true                  # 是否显示成就ID"
+showReward: "true              # 是否显示奖励"
+showDesc: "true                # 是否显示描述"
+nameColor: '"#FFFFFF"          # 成就名称颜色'
+idColor: '"#AAAAAA"            # 成就ID颜色'
+descColor: '"#CCCCCC"          # 成就描述颜色'
+rewardColor: '"#FFD700"        # 奖励颜色'
+primogemIcon: "# 原石图标配置"
+path: "ys.png                # 图标路径"
+text: "由mCat-ac生成           # 页脚文本"
+versionColor: '"#CCCCCC"       # 版本信息颜色'
+alignCenter: "true             # 是否居中对齐"
+family: Microsoft YaHei, Arial, sans-serif
+weight: normal
+style: normal
+file: HYWenHei.ttf
+size: 14
+enable: "true           # 是否启用文字阴影"
+offsetX: "1            # 阴影X偏移"
+offsetY: "1            # 阴影Y偏移"
+page:
+  randomBackground: false
+  useApiBackground: false

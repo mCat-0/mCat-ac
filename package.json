@@ -1,0 +1,25 @@
+{
+  "name": "mcat-ac",
+  "version": "2.7.9",
+  "description": "YunzaiBot成就查漏工具插件",
+  "type": "module",
+  "main": "mCat-ac.js",
+  "scripts": {
+    "test": "node test-template-api.js",
+    "test:frontend": "node test-template-api-frontend.js",
+    "test:server": "node test-template-api-server.cjs",
+    "test:guoba": "node test-guoba-connection.js"
+  },
+  "keywords": [
+    "yunzai",
+    "plugin",
+    "genshin",
+    "achievement"
+  ],
+  "author": "mCat",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "node-schedule": "^2.1.1"
+  }
+}

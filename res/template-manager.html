@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模板管理</title>
+    <style>
+        :root {
+            --primary-color: #409EFF;
+            --success-color: #67C23A;
+            --warning-color: #E6A23C;
+            --danger-color: #F56C6C;
+            --info-color: #909399;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --border-color: #dcdfe6;
+            --text-primary: #303133;
+            --text-regular: #606266;
+            --text-secondary: #909399;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .template-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            transition: box-shadow 0.3s;
+        }
+
+        .template-card:hover {
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .template-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .template-meta {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .template-description {
+            font-size: 14px;
+            color: var(--text-regular);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: var(--text-regular);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 4px;
+            color: white;
+            z-index: 2000;
+            transform: translateX(120%);
+            transition: transform 0.3s;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .preview-container {
+            width: 100%;
+            height: 400px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>模板管理</h1>
+            <button class="btn btn-primary" onclick="openCreateModal()">创建新模板</button>
+        </div>
+
+        <div class="card">
+            <div id="template-list" class="template-grid">
+                <!-- 模板列表将在这里渲染 -->
+                <p>正在加载模板列表...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建/编辑模板模态框 -->
+    <div id="template-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">创建模板</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="template-form">
+                    <input type="hidden" id="template-id">
+                    <div class="form-group">
+                        <label for="template-name">模板名称</label>
+                        <input type="text" id="template-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="template-version">版本</label>
+                        <input type="text" id="template-version" class="form-control" value="1.0.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="template-author">作者</label>
+                        <input type="text" id="template-author" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="template-description">描述</label>
+                        <textarea id="template-description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <!-- 这里可以添加更多配置选项 -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveTemplate()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览模板模态框 -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">模板预览</h3>
+                <span class="close" onclick="closePreviewModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="preview-container">
+                    <iframe id="preview-frame" class="preview-frame"></iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closePreviewModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // 全局变量
+        let currentTemplate = null;
+        const API_BASE = '/api/templates';
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplates();
+        });
+
+        // 加载模板列表
+        async function loadTemplates() {
+            try {
+                const response = await fetch(`${API_BASE}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    renderTemplateList(result.data.templates);
+                } else {
+                    showError('加载模板列表失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('加载模板列表失败: ' + error.message);
+            }
+        }
+
+        // 渲染模板列表
+        function renderTemplateList(templates) {
+            const container = document.getElementById('template-list');
+            
+            if (!templates || templates.length === 0) {
+                container.innerHTML = '<p>暂无模板</p>';
+                return;
+            }
+            
+            container.innerHTML = templates.map(template => `
+                <div class="template-card">
+                    <div class="template-header">
+                        <div class="template-name">${template.name}</div>
+                        <div class="template-version">v${template.version}</div>
+                    </div>
+                    <div class="template-meta">
+                        <div>作者: ${template.author || '未知'}</div>
+                        <div>路径: ${template.path}</div>
+                    </div>
+                    <div class="template-description">
+                        ${template.description || '暂无描述'}
+                    </div>
+                    <div class="template-actions">
+                        <button class="btn btn-primary" onclick="editTemplate('${template.name}')">编辑</button>
+                        <button class="btn btn-success" onclick="previewTemplate('${template.name}')">预览</button>
+                        <button class="btn btn-danger" onclick="deleteTemplate('${template.name}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 打开创建模板模态框
+        function openCreateModal() {
+            document.getElementById('modal-title').textContent = '创建模板';
+            document.getElementById('template-form').reset();
+            document.getElementById('template-id').value = '';
+            document.getElementById('template-modal').style.display = 'flex';
+        }
+
+        // 编辑模板
+        async function editTemplate(name) {
+            try {
+                const response = await fetch(`${API_BASE}/${name}`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const template = result.data.template;
+                    document.getElementById('modal-title').textContent = '编辑模板';
+                    document.getElementById('template-id').value = template.name;
+                    document.getElementById('template-name').value = template.name;
+                    document.getElementById('template-version').value = template.version;
+                    document.getElementById('template-author').value = template.author || '';
+                    document.getElementById('template-description').value = template.description || '';
+                    document.getElementById('template-modal').style.display = 'flex';
+                } else {
+                    showError('获取模板信息失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('获取模板信息失败: ' + error.message);
+            }
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('template-modal').style.display = 'none';
+        }
+
+        // 关闭预览模态框
+        function closePreviewModal() {
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        // 保存模板
+        async function saveTemplate() {
+            const id = document.getElementById('template-id').value;
+            const name = document.getElementById('template-name').value;
+            const version = document.getElementById('template-version').value;
+            const author = document.getElementById('template-author').value;
+            const description = document.getElementById('template-description').value;
+            
+            if (!name) {
+                showError('请输入模板名称');
+                return;
+            }
+            
+            const templateData = {
+                name,
+                version,
+                author,
+                description,
+                config: {
+                    // 默认配置
+                    background: {
+                        url: "background.svg",
+                        blur: 0,
+                        opacity: 0.8
+                    },
+                    font: {
+                        family: "SimHei",
+                        sizes: {
+                            title: 24,
+                            subtitle: 18,
+                            content: 14
+                        },
+                        colors: {
+                            title: "#FFFFFF",
+                            subtitle: "#F0F0F0",
+                            content: "#E0E0E0"
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 50,
+                            right: 50,
+                            bottom: 50,
+                            left: 50
+                        },
+                        spacing: {
+                            title: 30,
+                            subtitle: 20,
+                            item: 15
+                        },
+                        item: {
+                            width: 1100,
+                            height: 120,
+                            padding: {
+                                top: 15,
+                                right: 20,
+                                bottom: 15,
+                                left: 20
+                            },
+                            background: {
+                                color: "rgba(25, 25, 25, 0.7)",
+                                borderRadius: 10
+                            }
+                        }
+                    },
+                    header: {
+                        enable: true,
+                        title: "成就查漏结果",
+                        subtitle: "探索提瓦特的每一个角落",
+                        showStats: true,
+                        stats: [
+                            { "label": "已完成", "key": "completedCount" },
+                            { "label": "未完成", "key": "incompleteCount" },
+                            { "label": "可获得原石", "key": "totalReward" }
+                        ],
+                        showPage: true
+                    },
+                    achievement: {
+                        showId: true,
+                        showReward: true,
+                        showDesc: true,
+                        showHidden: true,
+                        hiddenText: "隐藏",
+                        hiddenColor: "#FFA500"
+                    },
+                    footer: {
+                        enable: true,
+                        text: "mCat-ac 成就查漏工具",
+                        showTime: true
+                    }
+                }
+            };
+            
+            try {
+                let response;
+                if (id) {
+                    // 更新模板
+                    response = await fetch(`${API_BASE}/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ config: templateData })
+                    });
+                } else {
+                    // 创建模板
+                    response = await fetch(`${API_BASE}/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(templateData)
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showSuccess(id ? '模板更新成功' : '模板创建成功');
+                    closeModal();
+                    loadTemplates();
+                } else {
+                    showError((id ? '更新模板失败' : '创建模板失败') + ': ' + result.message);
+                }
+            } catch (error) {
+                showError((id ? '更新模板失败' : '创建模板失败') + ': ' + error.message);
+            }
+        }
+
+        // 删除模板
+        async function deleteTemplate(name) {
+            if (!confirm(`确定要删除模板 "${name}" 吗？此操作不可恢复！`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${name}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showSuccess('模板删除成功');
+                    loadTemplates();
+                } else {
+                    showError('删除模板失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('删除模板失败: ' + error.message);
+            }
+        }
+
+        // 预览模板
+        async function previewTemplate(name) {
+            try {
+                // 构造测试数据
+                const testData = {
+                    title: "测试标题",
+                    subtitle: "测试副标题",
+                    completedCount: 100,
+                    incompleteCount: 50,
+                    totalReward: 250,
+                    achievements: [
+                        {
+                            id: 1001,
+                            name: "测试成就1",
+                            description: "这是一个测试成就描述",
+                            reward: "5 原石",
+                            hidden: true
+                        },
+                        {
+                            id: 1002,
+                            name: "测试成就2",
+                            description: "这是另一个测试成就描述",
+                            reward: "10 原石",
+                            hidden: false
+                        }
+                    ]
+                };
+                
+                const response = await fetch(`${API_BASE}/preview`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, data: testData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    // 在iframe中显示预览
+                    const iframe = document.getElementById('preview-frame');
+                    iframe.srcdoc = result.data.html;
+                    document.getElementById('preview-modal').style.display = 'flex';
+                } else {
+                    showError('预览模板失败: ' + result.message);
+                }
+            } catch (error) {
+                showError('预览模板失败: ' + error.message);
+            }
+        }
+
+        // 显示成功通知
+        function showSuccess(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification success show';
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 显示错误通知
+        function showError(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification error show';
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const templateModal = document.getElementById('template-modal');
+            const previewModal = document.getElementById('preview-modal');
+            
+            if (event.target === templateModal) {
+                closeModal();
+            }
+            
+            if (event.target === previewModal) {
+                closePreviewModal();
+            }
+        }
+    </script>
+</body>
+</html>
+</content>

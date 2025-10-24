@@ -1,0 +1,29 @@
+
+【请求URL】https://api.acgurl.link/img?type=yss&json=true
+
+【API 使用说明】
+图片重定向
+GET /img?type=yss
+直接返回随机图片，适用于图片展示。
+
+
+
+JSON 响应
+GET /img?type=ysh&json=true
+返回包含图片URL的JSON数据，适用于开发调用。
+
+
+
+
+支持的类型参数
+ysh - 原神横屏壁纸
+yss - 原神竖屏壁纸
+xqh - 星穹横屏壁纸
+xqs - 星穹竖屏壁纸
+bing - 必应每日壁纸
+
+
+请求参数
+type - 图片类型（必选）：ysh, yss, xqh, xqs, bing
+style - 图片样式（可选）：.webp, .jpg, .png,
+json - 是否返回JSON（可选）：true/false

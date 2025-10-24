@@ -31,7 +31,7 @@
 
 ## ✨ 插件简介
 
-**mCat-ac** 是YunzaiBot的一个专业成就查漏工具插件，专为原神玩家设计，帮助您轻松检查尚未完成的成就，并生成精美的可视化报告。通过直观的界面和丰富的自定义选项，让您的成就收集之旅更加高效和愉悦。
+**mCat-ac** 是YunzaiBot的一个专业成就查漏工具插件，专为原神玩家设计，帮助您轻松检查尚未完成的成就，并生成可视化报告。通过直观的界面和丰富的自定义选项，让您的成就收集之旅更加高效
 
 ## 🚀 功能特性
 
@@ -55,19 +55,34 @@
 
 ### 安装步骤
 1. 将本插件放入YunzaiBot的plugins目录下
+#### Gitee源
+```bash
+git clone https://gitee.com/mcat0/acm.git ./plugins/mCat-ac/
+```
+#### GitHub源
+```bash
+git clone https://github.com/mCat-0/mCat-ac.git ./plugins/mCat-ac/
+```
+#### GitLab源
+```bash
+git clone https://gitlab.com/mcat0/mCat-ac.git ./plugins/mCat-ac/
+```
+
+
 2. 进入插件目录，运行以下命令安装依赖：
+### 使用 npm
    ```bash
-   # 使用 npm
    npm install
-   
-   # 或使用 pnpm
+   ```
+   或
+### 使用 pnpm
+   ```bash
    pnpm install
    ```
 3. 重启YunzaiBot以加载插件
 4. 使用 `#更新校对文件` 命令获取最新的成就数据库
 
 ## 📖 使用说明
-
 ### 用户指令
 
 | 命令 | 功能描述 | 使用示例 |

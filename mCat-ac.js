@@ -5327,24 +5327,28 @@ class AchievementCheck extends plugin {
       let repoName = 'GitLab';
       
       try {
+        // 检查GitLab连接
         const networkCheck = await axios.get('https://gitlab.com', { timeout: 10000 });
         if (!networkCheck || networkCheck.status !== 200) {
           throw new Error('GitLab连接失败');
         }
       } catch (networkError) {
+        // GitLab连接失败，尝试Gitee
         logger.error(`${COLORS.RED}mCat-ac: GitLab连接检查失败: ${networkError.message}${COLORS.RESET}`);
         await e.reply('⚠️ GitLab连接失败，尝试使用Gitee备用仓库...');
         
-        // 尝试Gitee连接
         try {
+          // 检查Gitee连接
           const giteeCheck = await axios.get('https://gitee.com', { timeout: 10000 });
           if (!giteeCheck || giteeCheck.status !== 200) {
             throw new Error('Gitee连接失败');
           }
+          // 切换到Gitee仓库
           repoUrl = 'https://gitee.com/mcat0/acm';
           repoName = 'Gitee';
           await e.reply(`✅ 已切换到${repoName}备用仓库`);
         } catch (giteeError) {
+          // 两个仓库都连接失败
           logger.error(`${COLORS.RED}mCat-ac: Gitee连接检查也失败: ${giteeError.message}${COLORS.RESET}`);
           await e.reply('❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试');
           return;

@@ -67,8 +67,8 @@ const achievementHelperPlugin = {
     if (data.info && data.info.export_app === 'cocogoat' && Array.isArray(data.list)) {
       console.log('检测到UIAF格式');
       for (const item of data.list) {
-        if (item.id) {
-          // 对于UIAF格式，所有在list中的都是已完成的
+        if (item.id && item.timestamp !== 0) {
+          // 对于UIAF格式，所有在list中的都是已完成的，但排除timestamp为0的记录
           completedIds.push(item.id);
         }
       }
@@ -77,8 +77,8 @@ const achievementHelperPlugin = {
     else if (data.source === '椰羊成就' && data.value && Array.isArray(data.value.achievements)) {
       console.log('检测到legacy格式');
       for (const item of data.value.achievements) {
-        if (item.id) {
-          // 在legacy格式中，所有列出的都是已完成的
+        if (item.id && item.timestamp !== 0) {
+          // 在legacy格式中，所有列出的都是已完成的，但排除timestamp为0的记录
           completedIds.push(item.id);
         }
       }
@@ -87,8 +87,8 @@ const achievementHelperPlugin = {
     else if (data.info && data.info.export_app === 'cocogoat' && Array.isArray(data.list)) {
       console.log('检测到uiafext格式');
       for (const item of data.list) {
-        // uiafext格式中可能有status字段，值为3表示已完成
-        if (item.id && (!item.status || item.status === 3)) {
+        // uiafext格式中可能有status字段，值为3表示已完成，同时排除timestamp为0的记录
+        if (item.id && (!item.status || item.status === 3) && item.timestamp !== 0) {
           completedIds.push(item.id);
         }
       }
@@ -102,7 +102,7 @@ const achievementHelperPlugin = {
         // 检查直接字段
         if (Array.isArray(data[field])) {
           for (const item of data[field]) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id);
             }
           }
@@ -115,7 +115,7 @@ const achievementHelperPlugin = {
         // 检查嵌套字段
         if (typeof data.value === 'object' && Array.isArray(data.value[field])) {
           for (const item of data.value[field]) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id);
             }
           }

@@ -1255,7 +1255,7 @@ class AchievementCheck extends plugin {
           logger.info(`[mCat-ac] 检测到可能的椰羊成就格式，长度: ${achievements.length}`)
           let foundIds = false;
           for (const item of achievements) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id)
               foundIds = true
               if (completedIds.length <= 5) { // 只记录前5个ID作为示例
@@ -1274,7 +1274,7 @@ class AchievementCheck extends plugin {
       if ((data.source === '椰羊成就' || data.info?.app === '椰羊成就') && Array.isArray(data.value?.achievements)) {
         logger.info('[mCat-ac] 检测到椰羊成就legacy格式')
         for (const item of data.value.achievements) {
-          if (item.id) {
+          if (item.id && item.timestamp !== 0) {
             completedIds.push(item.id)
             logger.debug(`[mCat-ac] 添加椰羊成就legacy格式ID: ${item.id}`)
           }
@@ -1286,7 +1286,7 @@ class AchievementCheck extends plugin {
       if ((data.source === '椰羊成就' || data.info?.app === '椰羊成就') && Array.isArray(data.achievements)) {
         logger.info('[mCat-ac] 检测到椰羊成就UIAF扩展格式')
         for (const item of data.achievements) {
-          if (item.id) {
+          if (item.id && item.timestamp !== 0) {
             completedIds.push(item.id)
             logger.debug(`[mCat-ac] 添加椰羊成就UIAF扩展格式ID: ${item.id}`)
           }
@@ -1302,7 +1302,7 @@ class AchievementCheck extends plugin {
         if (Array.isArray(data.data.list)) {
           logger.info('[mCat-ac] 检测到data.list格式')
           for (const item of data.data.list) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id)
               logger.debug(`[mCat-ac] 从data.list添加ID: ${item.id}`)
             }
@@ -1315,7 +1315,7 @@ class AchievementCheck extends plugin {
         if (Array.isArray(data.data.achievements)) {
           logger.info('[mCat-ac] 检测到data.achievements格式')
           for (const item of data.data.achievements) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id)
               logger.debug(`[mCat-ac] 从data.achievements添加ID: ${item.id}`)
             }
@@ -1332,7 +1332,7 @@ class AchievementCheck extends plugin {
         if (Array.isArray(data.content.achievements)) {
           logger.info('[mCat-ac] 检测到content.achievements格式')
           for (const item of data.content.achievements) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id)
               logger.debug(`[mCat-ac] 从content.achievements添加ID: ${item.id}`)
             }
@@ -1348,7 +1348,7 @@ class AchievementCheck extends plugin {
       if (Array.isArray(data.list)) {
         logger.info('[mCat-ac] 检测到list数组格式')
         for (const item of data.list) {
-          if (item.id) {
+          if (item.id && item.timestamp !== 0) {
             completedIds.push(item.id)
             logger.debug(`[mCat-ac] 添加list数组格式ID: ${item.id}`)
           }
@@ -1362,7 +1362,7 @@ class AchievementCheck extends plugin {
       if (Array.isArray(data.achievements)) {
         logger.info('[mCat-ac] 检测到通用成就列表格式')
         for (const item of data.achievements) {
-          if (item.id) {
+          if (item.id && item.timestamp !== 0) {
             completedIds.push(item.id)
             logger.debug(`[mCat-ac] 添加通用成就格式ID: ${item.id}`)
           }
@@ -1385,7 +1385,7 @@ class AchievementCheck extends plugin {
           // 如果是对象数组，尝试提取每个对象的ID
           logger.info('[mCat-ac] 检测到对象数组格式，尝试提取ID')
           for (const item of data) {
-            if (item.id) {
+            if (item.id && item.timestamp !== 0) {
               completedIds.push(item.id)
               logger.debug(`[mCat-ac] 从对象数组中添加ID: ${item.id}`)
             }
@@ -1416,7 +1416,7 @@ class AchievementCheck extends plugin {
             // 增加检查范围，从10个元素扩展到20个
             for (const item of value.slice(0, 20)) { 
               if (item && typeof item === 'object') {
-                if (item.id) {
+                if (item.id && item.timestamp !== 0) {
                   completedIds.push(item.id)
                   foundInArray = true
                   logger.debug(`[mCat-ac] 从数组字段 ${key} 中找到ID: ${item.id}`)
@@ -1433,7 +1433,7 @@ class AchievementCheck extends plugin {
               logger.info(`[mCat-ac] 从数组字段 ${key} 中找到成就数据，继续扫描整个数组`)
               // 扫描整个数组
               for (const item of value) {
-                if (item && typeof item === 'object' && item.id) {
+                if (item && typeof item === 'object' && item.id && item.timestamp !== 0) {
                   completedIds.push(item.id)
                 } else if (typeof item === 'number') {
                   completedIds.push(item)
@@ -1483,7 +1483,7 @@ class AchievementCheck extends plugin {
             const checkItems = obj.slice(0, 30);
             for (const item of checkItems) {
               if (item && typeof item === 'object') {
-                if (item.id) {
+                if (item.id && item.timestamp !== 0) {
                   completedIds.push(item.id)
                   logger.debug(`[mCat-ac] 深度搜索发现ID: ${item.id} (来自${parentKey})`)
                 } else {
@@ -1501,7 +1501,7 @@ class AchievementCheck extends plugin {
             if (completedIds.length > 0 && obj.length > 30) {
               logger.info(`[mCat-ac] 在数组 ${parentKey} 的前30个元素中找到ID，继续检查剩余元素`)
               for (const item of obj.slice(30)) {
-                if (item && typeof item === 'object' && item.id) {
+                if (item && typeof item === 'object' && item.id && item.timestamp !== 0) {
                   completedIds.push(item.id)
                 } else if (typeof item === 'number') {
                   completedIds.push(item)
@@ -1520,7 +1520,7 @@ class AchievementCheck extends plugin {
                 completedIds.push(value)
               }
               // 检查是否是成就项
-              else if (value && typeof value === 'object' && value.id) {
+              else if (value && typeof value === 'object' && value.id && value.timestamp !== 0) {
                 completedIds.push(value.id)
                 logger.debug(`[mCat-ac] 深度搜索发现ID: ${value.id} (来自${newKey})`)
               } else if (value && typeof value === 'object') {

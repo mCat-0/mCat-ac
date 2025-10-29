@@ -5310,22 +5310,54 @@ class AchievementCheck extends plugin {
     return [];
   }
 
+  /**
+   * 制作转发消息
+   * @param {Object} e - 消息事件
+   * @param {Array} msg - 消息数组
+   * @param {String} dec - 转发描述
+   */
+  makeForwardMsg(e, msg = [], dec) {
+    const forwardMsg = [];
+    if (dec) forwardMsg.push({ message: dec });
+    for (const message of Array.isArray(msg) ? msg : [msg]) {
+      forwardMsg.push({ message });
+    }
+
+    if (e?.group?.makeForwardMsg) {
+      return e.group.makeForwardMsg(forwardMsg);
+    } else if (e?.friend?.makeForwardMsg) {
+      return e.friend.makeForwardMsg(forwardMsg);
+    } else {
+      return Bot.makeForwardMsg(forwardMsg);
+    }
+  }
+
   // ACM更新插件功能
   async acmUpdatePlugin(e) {
+    // 收集所有反馈消息，最后合并转发
+    const feedbackMessages = [];
+    
     try {
       // 等待依赖初始化
       if (!this.dependenciesInitialized) {
-        await e.reply('插件依赖正在初始化，请稍后再试...');
+        const msg = '插件依赖正在初始化，请稍后再试...';
+        await e.reply(msg);
         return;
       }
       
       logger.info(`${COLORS.CYAN}mCat-ac: 开始执行插件更新检查${COLORS.RESET}`);
-      await e.reply('正在执行插件更新检查...');
+      const startMsg = '正在执行插件更新检查...';
+      await e.reply(startMsg);
+      feedbackMessages.push(startMsg);
       
       // 1. 检查网络连接
-      await e.reply('正在检查网络连接...');
+      const checkNetworkMsg = '正在检查网络连接...';
+      await e.reply(checkNetworkMsg);
+      feedbackMessages.push(checkNetworkMsg);
+      
       let repoUrl = 'https://gitlab.com/mCat0/mCat-ac';
       let repoName = 'GitLab';
+      let repoGitUrl = 'https://gitlab.com/mCat0/mCat-ac.git';
       
       try {
         // 检查GitLab连接
@@ -5336,7 +5368,9 @@ class AchievementCheck extends plugin {
       } catch (networkError) {
         // GitLab连接失败，尝试Gitee
         logger.error(`${COLORS.RED}mCat-ac: GitLab连接检查失败: ${networkError.message}${COLORS.RESET}`);
-        await e.reply('⚠️ GitLab连接失败，尝试使用Gitee备用仓库...');
+        const gitlabFailMsg = '⚠️ GitLab连接失败，尝试使用Gitee备用仓库...';
+        await e.reply(gitlabFailMsg);
+        feedbackMessages.push(gitlabFailMsg);
         
         try {
           // 检查Gitee连接
@@ -5347,21 +5381,37 @@ class AchievementCheck extends plugin {
           // 切换到Gitee仓库
           repoUrl = 'https://gitee.com/mcat0/acm';
           repoName = 'Gitee';
-          await e.reply(`✅ 已切换到${repoName}备用仓库`);
+          repoGitUrl = 'https://gitee.com/mcat0/acm.git';
+          const switchGiteeMsg = `✅ 已切换到${repoName}备用仓库`;
+          await e.reply(switchGiteeMsg);
+          feedbackMessages.push(switchGiteeMsg);
         } catch (giteeError) {
           // 两个仓库都连接失败
           logger.error(`${COLORS.RED}mCat-ac: Gitee连接检查也失败: ${giteeError.message}${COLORS.RESET}`);
-          await e.reply('❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试');
+          const networkFailMsg = '❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试';
+          await e.reply(networkFailMsg);
+          feedbackMessages.push(networkFailMsg);
+          
+          // 发送合并转发消息
+          const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
+          if (forwardMsg) {
+            await e.reply(forwardMsg);
+          }
           return;
         }
       }
       
       // 2. 查询当前已安装的插件版本
       const currentVersion = this.version || '未知';
-      await e.reply(`当前已安装版本: ${currentVersion}`);
+      const currentVersionMsg = `当前已安装版本: ${currentVersion}`;
+      await e.reply(currentVersionMsg);
+      feedbackMessages.push(currentVersionMsg);
       
       // 3. 连接至官方插件仓库，获取最新版本信息
-      await e.reply('正在获取最新版本信息...');
+      const fetchVersionMsg = '正在获取最新版本信息...';
+      await e.reply(fetchVersionMsg);
+      feedbackMessages.push(fetchVersionMsg);
+      
       let latestVersion, updateLogs;
       try {
         // 根据选择的仓库获取相应的URL
@@ -5379,7 +5429,9 @@ class AchievementCheck extends plugin {
         
         if (repoPackageResponse && repoPackageResponse.data) {
           latestVersion = repoPackageResponse.data.version || '未知';
-          await e.reply(`仓库最新版本: ${latestVersion}`);
+          const latestVersionMsg = `仓库最新版本: ${latestVersion}`;
+          await e.reply(latestVersionMsg);
+          feedbackMessages.push(latestVersionMsg);
         }
         
         // 获取README.md中的更新日志
@@ -5395,7 +5447,15 @@ class AchievementCheck extends plugin {
         }
       } catch (repoError) {
         logger.error(`${COLORS.RED}mCat-ac: 获取仓库信息失败: ${repoError.message}${COLORS.RESET}`);
-        await e.reply('❌ 获取仓库信息失败，请稍后重试');
+        const repoFailMsg = '❌ 获取仓库信息失败，请稍后重试';
+        await e.reply(repoFailMsg);
+        feedbackMessages.push(repoFailMsg);
+        
+        // 发送合并转发消息
+        const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
+        if (forwardMsg) {
+          await e.reply(forwardMsg);
+        }
         return;
       }
       
@@ -5416,12 +5476,24 @@ class AchievementCheck extends plugin {
       }
       
       if (currentVersion === '未知' || latestVersion === '未知') {
-        await e.reply('⚠️ 版本信息不完整，无法准确判断是否需要更新');
+        const versionIncompleteMsg = '⚠️ 版本信息不完整，无法准确判断是否需要更新';
+        await e.reply(versionIncompleteMsg);
+        feedbackMessages.push(versionIncompleteMsg);
       } else if (compareVersions(currentVersion, latestVersion) >= 0) {
-        await e.reply('✅ 当前已是最新版本，无需更新');
+        const upToDateMsg = '✅ 当前已是最新版本，无需更新';
+        await e.reply(upToDateMsg);
+        feedbackMessages.push(upToDateMsg);
+        
+        // 发送合并转发消息
+        const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
+        if (forwardMsg) {
+          await e.reply(forwardMsg);
+        }
         return;
       } else {
-        await e.reply(`📢 检测到新版本: ${latestVersion}`);
+        const newVersionMsg = `📢 检测到新版本: ${latestVersion}`;
+        await e.reply(newVersionMsg);
+        feedbackMessages.push(newVersionMsg);
         
         // 显示更新日志
         if (updateLogs) {
@@ -5433,46 +5505,25 @@ class AchievementCheck extends plugin {
             if (logContent.length > 500) {
               logContent = logContent.substring(0, 500) + '...';
             }
-            await e.reply(`📝 更新内容:\n${logContent}`);
+            const updateLogMsg = `📝 更新内容:\n${logContent}`;
+            await e.reply(updateLogMsg);
+            feedbackMessages.push(updateLogMsg);
           }
         }
         
         // 5. 执行更新
-        await e.reply('🚀 开始更新插件...');
+        const startUpdateMsg = '🚀 开始更新插件...';
+        await e.reply(startUpdateMsg);
+        feedbackMessages.push(startUpdateMsg);
         
         try {
           // 执行git pull命令
           const { exec } = await import('child_process');
           const pluginDir = __dirname;
           
-          // 根据仓库类型构建不同的git命令
-          let gitCommand;
-          if (repoName === 'GitLab') {
-            gitCommand = 'git pull origin master';
-          } else {
-            // 对于Gitee，先检查是否已有remote
-            await new Promise((resolve, reject) => {
-              exec('git remote -v', { cwd: pluginDir }, (error, stdout) => {
-                if (error) {
-                  reject(error);
-                  return;
-                }
-                
-                if (!stdout.includes('gitee')) {
-                  // 如果没有Gitee remote，则添加
-                  exec('git remote add gitee https://gitee.com/mcat0/acm.git', { cwd: pluginDir }, (err) => {
-                    if (err) {
-                      logger.warn(`${COLORS.YELLOW}mCat-ac: 添加Gitee remote失败: ${err.message}${COLORS.RESET}`);
-                    }
-                    resolve();
-                  });
-                } else {
-                  resolve();
-                }
-              });
-            });
-            gitCommand = 'git pull gitee master';
-          }
+          // 使用直接URL拉取，避免remote配置问题
+          const gitCommand = `git pull ${repoGitUrl} master`;
+          logger.info(`${COLORS.CYAN}mCat-ac: 执行更新命令: ${gitCommand}${COLORS.RESET}`);
           
           const updateResult = await new Promise((resolve, reject) => {
             exec(gitCommand, { cwd: pluginDir }, (error, stdout, stderr) => {
@@ -5485,8 +5536,12 @@ class AchievementCheck extends plugin {
           });
           
           logger.info(`${COLORS.GREEN}mCat-ac: 插件更新成功:\n${updateResult}${COLORS.RESET}`);
-          await e.reply('✅ 插件更新成功！');
-          await e.reply('🔄 请重启Yunzai-Bot以应用更新');
+          const updateSuccessMsg = '✅ 插件更新成功！';
+          const restartMsg = '🔄 请重启Yunzai-Bot以应用更新';
+          await e.reply(updateSuccessMsg);
+          await e.reply(restartMsg);
+          feedbackMessages.push(updateSuccessMsg);
+          feedbackMessages.push(restartMsg);
           
           // 尝试更新版本号
           try {
@@ -5500,13 +5555,31 @@ class AchievementCheck extends plugin {
           }
         } catch (updateError) {
           logger.error(`${COLORS.RED}mCat-ac: 插件更新失败: ${updateError.message}${COLORS.RESET}`);
-          await e.reply(`❌ 更新失败: ${updateError.message}`);
-          await e.reply('建议手动更新或检查Git环境配置');
+          const updateErrorMsg = `❌ 插件更新失败: ${updateError.message}`;
+          await e.reply(updateErrorMsg);
+          feedbackMessages.push(updateErrorMsg);
+          
+          // 提供备用提示
+          if (updateError.message.includes('fatal: unknown write failure')) {
+            const retryMsg = '⚠️ 出现写入错误，可能是权限问题，请尝试以管理员身份运行Yunzai-Bot';
+            await e.reply(retryMsg);
+            feedbackMessages.push(retryMsg);
+          }
         }
       }
-    } catch (error) {
-      logger.error(`${COLORS.RED}mCat-ac: ACM更新功能出错: ${error.message}${COLORS.RESET}`);
-      await e.reply('❌ 更新过程中发生错误，请稍后重试');
+    } catch (mainError) {
+      logger.error(`${COLORS.RED}mCat-ac: 更新插件时发生未知错误: ${mainError.message}${COLORS.RESET}`);
+      const mainErrorMsg = `❌ 更新插件时发生未知错误: ${mainError.message}`;
+      await e.reply(mainErrorMsg);
+      feedbackMessages.push(mainErrorMsg);
+    } finally {
+      // 无论成功失败，都发送合并转发消息
+      if (feedbackMessages.length > 0) {
+        const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
+        if (forwardMsg) {
+          await e.reply(forwardMsg);
+        }
+      }
     }
   }
 }

@@ -414,6 +414,7 @@ class AchievementCheck extends plugin {
           { command: '#更新校对文件', description: '更新成就校对文件（自动检查更新）' },
           { command: '#强制更新校对文件', description: '强制更新成就校对文件' },
           { command: '#成就调试', description: '显示调试信息（仅限测试环境）' },
+          // 确保#ACM更新命令在ACM系列命令之前
           { command: '#ACM更新', description: '检查并更新插件到最新版本' },
           // ACM管理员指令
           { command: '#ACM开启api', description: '开启从网络获取背景图片功能' },

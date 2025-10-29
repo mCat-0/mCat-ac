@@ -5341,18 +5341,16 @@ class AchievementCheck extends plugin {
       // 等待依赖初始化
       if (!this.dependenciesInitialized) {
         const msg = '插件依赖正在初始化，请稍后再试...';
-        await e.reply(msg);
+        feedbackMessages.push(msg);
         return;
       }
       
       logger.info(`${COLORS.CYAN}mCat-ac: 开始执行插件更新检查${COLORS.RESET}`);
       const startMsg = '正在执行插件更新检查...';
-      await e.reply(startMsg);
       feedbackMessages.push(startMsg);
       
       // 1. 检查网络连接
       const checkNetworkMsg = '正在检查网络连接...';
-      await e.reply(checkNetworkMsg);
       feedbackMessages.push(checkNetworkMsg);
       
       let repoUrl = 'https://gitlab.com/mCat0/mCat-ac';
@@ -5369,8 +5367,7 @@ class AchievementCheck extends plugin {
         // GitLab连接失败，尝试Gitee
         logger.error(`${COLORS.RED}mCat-ac: GitLab连接检查失败: ${networkError.message}${COLORS.RESET}`);
         const gitlabFailMsg = '⚠️ GitLab连接失败，尝试使用Gitee备用仓库...';
-        await e.reply(gitlabFailMsg);
-        feedbackMessages.push(gitlabFailMsg);
+          feedbackMessages.push(gitlabFailMsg);
         
         try {
           // 检查Gitee连接
@@ -5383,13 +5380,11 @@ class AchievementCheck extends plugin {
           repoName = 'Gitee';
           repoGitUrl = 'https://gitee.com/mcat0/acm.git';
           const switchGiteeMsg = `✅ 已切换到${repoName}备用仓库`;
-          await e.reply(switchGiteeMsg);
           feedbackMessages.push(switchGiteeMsg);
         } catch (giteeError) {
           // 两个仓库都连接失败
           logger.error(`${COLORS.RED}mCat-ac: Gitee连接检查也失败: ${giteeError.message}${COLORS.RESET}`);
           const networkFailMsg = '❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试';
-          await e.reply(networkFailMsg);
           feedbackMessages.push(networkFailMsg);
           return;
         }
@@ -5398,12 +5393,10 @@ class AchievementCheck extends plugin {
       // 2. 查询当前已安装的插件版本
       const currentVersion = this.version || '未知';
       const currentVersionMsg = `当前已安装版本: ${currentVersion}`;
-      await e.reply(currentVersionMsg);
       feedbackMessages.push(currentVersionMsg);
       
       // 3. 连接至官方插件仓库，获取最新版本信息
       const fetchVersionMsg = '正在获取最新版本信息...';
-      await e.reply(fetchVersionMsg);
       feedbackMessages.push(fetchVersionMsg);
       
       let latestVersion, updateLogs;
@@ -5424,8 +5417,7 @@ class AchievementCheck extends plugin {
         if (repoPackageResponse && repoPackageResponse.data) {
           latestVersion = repoPackageResponse.data.version || '未知';
           const latestVersionMsg = `仓库最新版本: ${latestVersion}`;
-          await e.reply(latestVersionMsg);
-          feedbackMessages.push(latestVersionMsg);
+            feedbackMessages.push(latestVersionMsg);
         }
         
         // 获取README.md中的更新日志
@@ -5442,7 +5434,6 @@ class AchievementCheck extends plugin {
       } catch (repoError) {
         logger.error(`${COLORS.RED}mCat-ac: 获取仓库信息失败: ${repoError.message}${COLORS.RESET}`);
         const repoFailMsg = '❌ 获取仓库信息失败，请稍后重试';
-        await e.reply(repoFailMsg);
         feedbackMessages.push(repoFailMsg);
         return;
       }
@@ -5465,16 +5456,13 @@ class AchievementCheck extends plugin {
       
       if (currentVersion === '未知' || latestVersion === '未知') {
         const versionIncompleteMsg = '⚠️ 版本信息不完整，无法准确判断是否需要更新';
-        await e.reply(versionIncompleteMsg);
         feedbackMessages.push(versionIncompleteMsg);
       } else if (compareVersions(currentVersion, latestVersion) >= 0) {
         const upToDateMsg = '✅ 当前已是最新版本，无需更新';
-        await e.reply(upToDateMsg);
         feedbackMessages.push(upToDateMsg);
         return;
       } else {
         const newVersionMsg = `📢 检测到新版本: ${latestVersion}`;
-        await e.reply(newVersionMsg);
         feedbackMessages.push(newVersionMsg);
         
         // 显示更新日志
@@ -5488,14 +5476,12 @@ class AchievementCheck extends plugin {
               logContent = logContent.substring(0, 500) + '...';
             }
             const updateLogMsg = `📝 更新内容:\n${logContent}`;
-            await e.reply(updateLogMsg);
             feedbackMessages.push(updateLogMsg);
           }
         }
         
         // 5. 执行更新
         const startUpdateMsg = '🚀 开始更新插件...';
-        await e.reply(startUpdateMsg);
         feedbackMessages.push(startUpdateMsg);
         
         try {
@@ -5520,8 +5506,6 @@ class AchievementCheck extends plugin {
           logger.info(`${COLORS.GREEN}mCat-ac: 插件更新成功:\n${updateResult}${COLORS.RESET}`);
           const updateSuccessMsg = '✅ 插件更新成功！';
           const restartMsg = '🔄 请重启Yunzai-Bot以应用更新';
-          await e.reply(updateSuccessMsg);
-          await e.reply(restartMsg);
           feedbackMessages.push(updateSuccessMsg);
           feedbackMessages.push(restartMsg);
           
@@ -5538,21 +5522,18 @@ class AchievementCheck extends plugin {
         } catch (updateError) {
           logger.error(`${COLORS.RED}mCat-ac: 插件更新失败: ${updateError.message}${COLORS.RESET}`);
           const updateErrorMsg = `❌ 插件更新失败: ${updateError.message}`;
-          await e.reply(updateErrorMsg);
-          feedbackMessages.push(updateErrorMsg);
-          
-          // 提供备用提示
-          if (updateError.message.includes('fatal: unknown write failure')) {
-            const retryMsg = '⚠️ 出现写入错误，可能是权限问题，请尝试以管理员身份运行Yunzai-Bot';
-            await e.reply(retryMsg);
-            feedbackMessages.push(retryMsg);
-          }
+        feedbackMessages.push(updateErrorMsg);
+        
+        // 提供备用提示
+        if (updateError.message.includes('fatal: unknown write failure')) {
+          const retryMsg = '⚠️ 出现写入错误，可能是权限问题，请尝试以管理员身份运行Yunzai-Bot';
+          feedbackMessages.push(retryMsg);
+        }
         }
       }
     } catch (mainError) {
       logger.error(`${COLORS.RED}mCat-ac: 更新插件时发生未知错误: ${mainError.message}${COLORS.RESET}`);
       const mainErrorMsg = `❌ 更新插件时发生未知错误: ${mainError.message}`;
-      await e.reply(mainErrorMsg);
       feedbackMessages.push(mainErrorMsg);
     } finally {
       // 无论成功失败，都发送合并转发消息

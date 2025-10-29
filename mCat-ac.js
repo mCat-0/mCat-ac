@@ -215,7 +215,7 @@ class AchievementCheck extends plugin {
         { reg: '^#ACM关闭api$', fnc: 'acmDisableApi', permission: 'master' },
         { reg: '^#ACM开启随机$', fnc: 'acmEnableRandom', permission: 'master' },
         { reg: '^#ACM关闭随机$', fnc: 'acmDisableRandom', permission: 'master' },
-        { reg: '^#ACM更新$', fnc: 'acmUpdatePlugin' },
+        { reg: '^#ACM更新$', fnc: 'acmUpdatePlugin', permission: 'master' },
         // 添加处理椰羊网站URL的规则
         { reg: 'https://77\\.cocogoat\\.cn/v2/memo/([a-zA-Z0-9]+)', fnc: 'importFromCocogoatUrl' },
         // 添加处理文件上传的规则

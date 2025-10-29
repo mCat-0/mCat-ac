@@ -105,6 +105,7 @@ git clone https://gitlab.com/mcat0/mCat-ac.git ./plugins/mCat-ac/
 | **#ACM关闭api** | 禁用网络背景图片 | 管理员 |
 | **#ACM开启随机** | 启用随机背景 | 管理员 |
 | **#ACM关闭随机** | 禁用随机背景 | 管理员 |
+| **#ACM更新** | 检查并更新插件到最新版本 | 管理员 |
 
 ## ⚙️ 插件配置
 

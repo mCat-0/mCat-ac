@@ -5391,12 +5391,6 @@ class AchievementCheck extends plugin {
           const networkFailMsg = '❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试';
           await e.reply(networkFailMsg);
           feedbackMessages.push(networkFailMsg);
-          
-          // 发送合并转发消息
-          const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
-          if (forwardMsg) {
-            await e.reply(forwardMsg);
-          }
           return;
         }
       }
@@ -5450,12 +5444,6 @@ class AchievementCheck extends plugin {
         const repoFailMsg = '❌ 获取仓库信息失败，请稍后重试';
         await e.reply(repoFailMsg);
         feedbackMessages.push(repoFailMsg);
-        
-        // 发送合并转发消息
-        const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
-        if (forwardMsg) {
-          await e.reply(forwardMsg);
-        }
         return;
       }
       
@@ -5483,12 +5471,6 @@ class AchievementCheck extends plugin {
         const upToDateMsg = '✅ 当前已是最新版本，无需更新';
         await e.reply(upToDateMsg);
         feedbackMessages.push(upToDateMsg);
-        
-        // 发送合并转发消息
-        const forwardMsg = this.makeForwardMsg(e, feedbackMessages, '插件更新反馈');
-        if (forwardMsg) {
-          await e.reply(forwardMsg);
-        }
         return;
       } else {
         const newVersionMsg = `📢 检测到新版本: ${latestVersion}`;

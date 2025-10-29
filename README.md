@@ -217,3 +217,9 @@ sequenceDiagram
 - **使用帮助**：查看完整的命令列表和使用示例
 
 我们致力于持续改进插件体验，感谢您的支持与使用！
+
+## 🙏 致谢
+
+感谢以下项目提供的支持：
+- **椰羊成就** [https://cocogoat.work](https://cocogoat.work)
+- **dvaJi** [https://github.com/dvaJi/genshin-data](https://github.com/dvaJi/genshin-data)

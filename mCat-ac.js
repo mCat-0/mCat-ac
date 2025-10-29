@@ -414,6 +414,7 @@ class AchievementCheck extends plugin {
           { command: '#更新校对文件', description: '更新成就校对文件（自动检查更新）' },
           { command: '#强制更新校对文件', description: '强制更新成就校对文件' },
           { command: '#成就调试', description: '显示调试信息（仅限测试环境）' },
+          { command: '#ACM更新', description: '检查并更新插件到最新版本' },
           // ACM管理员指令
           { command: '#ACM开启api', description: '开启从网络获取背景图片功能' },
           { command: '#ACM关闭api', description: '关闭从网络获取背景图片功能' },
@@ -5322,15 +5323,32 @@ class AchievementCheck extends plugin {
       
       // 1. 检查网络连接
       await e.reply('正在检查网络连接...');
+      let repoUrl = 'https://gitlab.com/mCat0/mCat-ac';
+      let repoName = 'GitLab';
+      
       try {
         const networkCheck = await axios.get('https://gitlab.com', { timeout: 10000 });
         if (!networkCheck || networkCheck.status !== 200) {
-          throw new Error('网络连接失败');
+          throw new Error('GitLab连接失败');
         }
       } catch (networkError) {
-        logger.error(`${COLORS.RED}mCat-ac: 网络连接检查失败: ${networkError.message}${COLORS.RESET}`);
-        await e.reply('❌ 网络连接失败，无法访问GitLab，请检查网络连接后重试');
-        return;
+        logger.error(`${COLORS.RED}mCat-ac: GitLab连接检查失败: ${networkError.message}${COLORS.RESET}`);
+        await e.reply('⚠️ GitLab连接失败，尝试使用Gitee备用仓库...');
+        
+        // 尝试Gitee连接
+        try {
+          const giteeCheck = await axios.get('https://gitee.com', { timeout: 10000 });
+          if (!giteeCheck || giteeCheck.status !== 200) {
+            throw new Error('Gitee连接失败');
+          }
+          repoUrl = 'https://gitee.com/mcat0/acm';
+          repoName = 'Gitee';
+          await e.reply(`✅ 已切换到${repoName}备用仓库`);
+        } catch (giteeError) {
+          logger.error(`${COLORS.RED}mCat-ac: Gitee连接检查也失败: ${giteeError.message}${COLORS.RESET}`);
+          await e.reply('❌ 网络连接失败，无法访问GitLab和Gitee，请检查网络连接后重试');
+          return;
+        }
       }
       
       // 2. 查询当前已安装的插件版本
@@ -5341,8 +5359,17 @@ class AchievementCheck extends plugin {
       await e.reply('正在获取最新版本信息...');
       let latestVersion, updateLogs;
       try {
+        // 根据选择的仓库获取相应的URL
+        let repoPackageUrl, readmeUrl;
+        if (repoName === 'GitLab') {
+          repoPackageUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/package.json';
+          readmeUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/README.md';
+        } else {
+          repoPackageUrl = 'https://gitee.com/mcat0/acm/raw/master/package.json';
+          readmeUrl = 'https://gitee.com/mcat0/acm/raw/master/README.md';
+        }
+        
         // 获取package.json中的最新版本
-        const repoPackageUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/package.json';
         const repoPackageResponse = await axios.get(repoPackageUrl, { timeout: 15000 });
         
         if (repoPackageResponse && repoPackageResponse.data) {
@@ -5351,7 +5378,6 @@ class AchievementCheck extends plugin {
         }
         
         // 获取README.md中的更新日志
-        const readmeUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/README.md';
         const readmeResponse = await axios.get(readmeUrl, { timeout: 15000 });
         
         if (readmeResponse && readmeResponse.data) {
@@ -5414,8 +5440,37 @@ class AchievementCheck extends plugin {
           const { exec } = await import('child_process');
           const pluginDir = __dirname;
           
+          // 根据仓库类型构建不同的git命令
+          let gitCommand;
+          if (repoName === 'GitLab') {
+            gitCommand = 'git pull origin master';
+          } else {
+            // 对于Gitee，先检查是否已有remote
+            await new Promise((resolve, reject) => {
+              exec('git remote -v', { cwd: pluginDir }, (error, stdout) => {
+                if (error) {
+                  reject(error);
+                  return;
+                }
+                
+                if (!stdout.includes('gitee')) {
+                  // 如果没有Gitee remote，则添加
+                  exec('git remote add gitee https://gitee.com/mcat0/acm.git', { cwd: pluginDir }, (err) => {
+                    if (err) {
+                      logger.warn(`${COLORS.YELLOW}mCat-ac: 添加Gitee remote失败: ${err.message}${COLORS.RESET}`);
+                    }
+                    resolve();
+                  });
+                } else {
+                  resolve();
+                }
+              });
+            });
+            gitCommand = 'git pull gitee master';
+          }
+          
           const updateResult = await new Promise((resolve, reject) => {
-            exec('git pull origin master', { cwd: pluginDir }, (error, stdout, stderr) => {
+            exec(gitCommand, { cwd: pluginDir }, (error, stdout, stderr) => {
               if (error) {
                 reject(new Error(`${error.message}\n${stderr}`));
               } else {

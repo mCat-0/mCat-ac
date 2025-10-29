@@ -215,6 +215,7 @@ class AchievementCheck extends plugin {
         { reg: '^#ACM关闭api$', fnc: 'acmDisableApi', permission: 'master' },
         { reg: '^#ACM开启随机$', fnc: 'acmEnableRandom', permission: 'master' },
         { reg: '^#ACM关闭随机$', fnc: 'acmDisableRandom', permission: 'master' },
+        { reg: '^#ACM更新$', fnc: 'acmUpdatePlugin' },
         // 添加处理椰羊网站URL的规则
         { reg: 'https://77\\.cocogoat\\.cn/v2/memo/([a-zA-Z0-9]+)', fnc: 'importFromCocogoatUrl' },
         // 添加处理文件上传的规则
@@ -5305,6 +5306,148 @@ class AchievementCheck extends plugin {
     }
     
     return [];
+  }
+
+  // ACM更新插件功能
+  async acmUpdatePlugin(e) {
+    try {
+      // 等待依赖初始化
+      if (!this.dependenciesInitialized) {
+        await e.reply('插件依赖正在初始化，请稍后再试...');
+        return;
+      }
+      
+      logger.info(`${COLORS.CYAN}mCat-ac: 开始执行插件更新检查${COLORS.RESET}`);
+      await e.reply('正在执行插件更新检查...');
+      
+      // 1. 检查网络连接
+      await e.reply('正在检查网络连接...');
+      try {
+        const networkCheck = await axios.get('https://gitlab.com', { timeout: 10000 });
+        if (!networkCheck || networkCheck.status !== 200) {
+          throw new Error('网络连接失败');
+        }
+      } catch (networkError) {
+        logger.error(`${COLORS.RED}mCat-ac: 网络连接检查失败: ${networkError.message}${COLORS.RESET}`);
+        await e.reply('❌ 网络连接失败，无法访问GitLab，请检查网络连接后重试');
+        return;
+      }
+      
+      // 2. 查询当前已安装的插件版本
+      const currentVersion = this.version || '未知';
+      await e.reply(`当前已安装版本: ${currentVersion}`);
+      
+      // 3. 连接至官方插件仓库，获取最新版本信息
+      await e.reply('正在获取最新版本信息...');
+      let latestVersion, updateLogs;
+      try {
+        // 获取package.json中的最新版本
+        const repoPackageUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/package.json';
+        const repoPackageResponse = await axios.get(repoPackageUrl, { timeout: 15000 });
+        
+        if (repoPackageResponse && repoPackageResponse.data) {
+          latestVersion = repoPackageResponse.data.version || '未知';
+          await e.reply(`仓库最新版本: ${latestVersion}`);
+        }
+        
+        // 获取README.md中的更新日志
+        const readmeUrl = 'https://gitlab.com/mCat0/mCat-ac/-/raw/master/README.md';
+        const readmeResponse = await axios.get(readmeUrl, { timeout: 15000 });
+        
+        if (readmeResponse && readmeResponse.data) {
+          const readmeContent = readmeResponse.data;
+          // 提取更新日志部分
+          const changelogMatch = readmeContent.match(/## 📝 更新日志[\s\S]*?(?=##|$)/);
+          if (changelogMatch) {
+            updateLogs = changelogMatch[0];
+          }
+        }
+      } catch (repoError) {
+        logger.error(`${COLORS.RED}mCat-ac: 获取仓库信息失败: ${repoError.message}${COLORS.RESET}`);
+        await e.reply('❌ 获取仓库信息失败，请稍后重试');
+        return;
+      }
+      
+      // 4. 对比版本
+      function compareVersions(v1, v2) {
+        const arr1 = v1.split('.').map(Number);
+        const arr2 = v2.split('.').map(Number);
+        
+        for (let i = 0; i < Math.max(arr1.length, arr2.length); i++) {
+          const num1 = arr1[i] || 0;
+          const num2 = arr2[i] || 0;
+          
+          if (num1 !== num2) {
+            return num1 - num2;
+          }
+        }
+        return 0;
+      }
+      
+      if (currentVersion === '未知' || latestVersion === '未知') {
+        await e.reply('⚠️ 版本信息不完整，无法准确判断是否需要更新');
+      } else if (compareVersions(currentVersion, latestVersion) >= 0) {
+        await e.reply('✅ 当前已是最新版本，无需更新');
+        return;
+      } else {
+        await e.reply(`📢 检测到新版本: ${latestVersion}`);
+        
+        // 显示更新日志
+        if (updateLogs) {
+          // 提取最新版本的更新内容
+          const latestLogMatch = updateLogs.match(new RegExp(`### v${latestVersion}[\s\S]*?(?=### v|$)`));
+          if (latestLogMatch) {
+            let logContent = latestLogMatch[0];
+            // 限制日志长度
+            if (logContent.length > 500) {
+              logContent = logContent.substring(0, 500) + '...';
+            }
+            await e.reply(`📝 更新内容:\n${logContent}`);
+          }
+        }
+        
+        // 5. 执行更新
+        await e.reply('🚀 开始更新插件...');
+        
+        try {
+          // 执行git pull命令
+          const { exec } = await import('child_process');
+          const pluginDir = __dirname;
+          
+          const updateResult = await new Promise((resolve, reject) => {
+            exec('git pull origin master', { cwd: pluginDir }, (error, stdout, stderr) => {
+              if (error) {
+                reject(new Error(`${error.message}\n${stderr}`));
+              } else {
+                resolve(stdout);
+              }
+            });
+          });
+          
+          logger.info(`${COLORS.GREEN}mCat-ac: 插件更新成功:\n${updateResult}${COLORS.RESET}`);
+          await e.reply('✅ 插件更新成功！');
+          await e.reply('🔄 请重启Yunzai-Bot以应用更新');
+          
+          // 尝试更新版本号
+          try {
+            const packagePath = path.join(__dirname, 'package.json');
+            const packageContent = fsSync.readFileSync(packagePath, 'utf8');
+            const packageData = JSON.parse(packageContent);
+            this.version = packageData.version || '未知';
+            global.mCatAcVersion = this.version;
+          } catch (e) {
+            // 忽略版本更新错误
+          }
+        } catch (updateError) {
+          logger.error(`${COLORS.RED}mCat-ac: 插件更新失败: ${updateError.message}${COLORS.RESET}`);
+          await e.reply(`❌ 更新失败: ${updateError.message}`);
+          await e.reply('建议手动更新或检查Git环境配置');
+        }
+      }
+    } catch (error) {
+      logger.error(`${COLORS.RED}mCat-ac: ACM更新功能出错: ${error.message}${COLORS.RESET}`);
+      await e.reply('❌ 更新过程中发生错误，请稍后重试');
+    }
   }
 }
 

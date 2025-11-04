@@ -1,6 +1,6 @@
 {
   "name": "mcat-ac",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "description": "YunzaiBot成就查漏工具插件",
   "type": "module",
   "main": "mCat-ac.js",

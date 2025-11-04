@@ -206,6 +206,7 @@ class AchievementCheck extends plugin {
         { reg: '^#成就录入$', fnc: 'startInput' },
         { reg: '^#成就录入(.+)$', fnc: 'inputByIdOrName' },
         { reg: '^#成就查漏$', fnc: 'checkAchievements' },
+        { reg: '^#成就查漏(?:\+|\\s+)?.*', fnc: 'checkAchievements' },
         { reg: '^#成就重置$', fnc: 'resetAchievements' },
         { reg: '^#更新校对文件$', fnc: 'updateCheckFile' },
         { reg: '^#强制更新校对文件$', fnc: 'forceUpdateCheckFile' },

@@ -1,6 +1,6 @@
 {
   "name": "mcat-ac",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "description": "原神成就查漏工具插件",
   "type": "module",
   "main": "mCat-ac.js",

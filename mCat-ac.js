@@ -2082,8 +2082,12 @@ class AchievementCheck extends plugin {
         // 如果指定了目标类目，则只处理该类目的成就
         if (targetCategory) {
           const targetFileName = categoryFileNameMap[targetCategory] || targetCategory
-          // 检查是否匹配类目名称或文件名
-          if (ac.categoryName !== targetCategory && (!ac.fileName || !ac.fileName.includes(targetFileName))) {
+          // 修复逻辑错误：只有当成就既不匹配分类名称也不匹配文件名时才跳过
+          const isCategoryMatch = ac.categoryName === targetCategory
+          const isFileNameMatch = ac.fileName && ac.fileName.includes(targetFileName)
+          
+          // 如果都不匹配，则跳过
+          if (!isCategoryMatch && !isFileNameMatch) {
             continue
           }
         }

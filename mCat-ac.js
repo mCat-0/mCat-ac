@@ -2167,10 +2167,12 @@ class AchievementCheck extends plugin {
     const userId = e.user_id
     const userFilePath = path.join(__dirname, `data/UserLog/${userId}.json`)
     
-    // 解析指令，支持#成就查漏+[类目名]格式
+    // 解析指令，支持#成就查漏+[类目名]或#成就查漏 [类目名]或#成就查漏[类目名]格式
     let targetCategory = null;
     const message = e.message?.[0]?.text || e.raw_message || '';
-    const categoryMatch = message.match(/^#成就查漏\+([^\s]+)/);
+    
+    // 支持多种格式：#成就查漏+类目名 或 #成就查漏 类目名 或 #成就查漏类目名
+    const categoryMatch = message.match(/^#成就查漏(?:\+|\s+)?([^\s]+)/);
     
     if (categoryMatch && categoryMatch[1]) {
       targetCategory = categoryMatch[1];

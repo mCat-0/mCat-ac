@@ -2173,10 +2173,12 @@ class AchievementCheck extends plugin {
     const message = e.message?.[0]?.text || e.raw_message || '';
     
     // 支持多种格式：#成就查漏+类目名 或 #成就查漏 类目名 或 #成就查漏类目名
-    const categoryMatch = message.match(/^#成就查漏(?:\+|\s+)?([^\s]+)/);
+    // 修改正则表达式，优化匹配逻辑，确保能正确捕获所有三种格式
+    const categoryMatch = message.match(/^#成就查漏(?:(\+|\s+)([^\s]+)|([^\s]+))/);
     
-    if (categoryMatch && categoryMatch[1]) {
-      targetCategory = categoryMatch[1];
+    // 如果匹配成功，获取捕获的类目名（考虑三种格式）
+    if (categoryMatch) {
+      targetCategory = categoryMatch[2] || categoryMatch[3]; // 取加号或空格后的内容，或直接跟在#成就查漏后的内容
       logger.info(`${COLORS.CYAN}mCat-ac: 用户${userId}查询指定类目成就: ${targetCategory}${COLORS.RESET}`);
     }
     

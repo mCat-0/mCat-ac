@@ -2172,27 +2172,40 @@ class AchievementCheck extends plugin {
     const userId = e.user_id
     const userFilePath = path.join(__dirname, `data/UserLog/${userId}.json`)
     
+    // 添加详细日志记录指令接收
+    logger.info(`${COLORS.CYAN}mCat-ac: 收到成就查漏指令，用户ID: ${userId}${COLORS.RESET}`);
+    
     // 解析指令，支持#成就查漏+[类目名]或#成就查漏 [类目名]或#成就查漏[类目名]格式
     let targetCategory = null;
     const message = e.message?.[0]?.text || e.raw_message || '';
+    
+    logger.info(`${COLORS.CYAN}mCat-ac: 原始消息内容: ${message}${COLORS.RESET}`);
     
     // 支持多种格式：#成就查漏+类目名 或 #成就查漏 类目名 或 #成就查漏类目名
     // 使用更简单直接的正则表达式，确保能正确匹配所有三种格式
     const categoryMatch = message.match(/^#成就查漏(?:\+|\s+)?(.*)/);
     
+    logger.info(`${COLORS.CYAN}mCat-ac: 正则匹配结果: ${JSON.stringify(categoryMatch)}${COLORS.RESET}`);
+    
     // 如果匹配成功且有类目名
     if (categoryMatch && categoryMatch[1] && categoryMatch[1].trim()) {
       targetCategory = categoryMatch[1].trim();
       logger.info(`${COLORS.CYAN}mCat-ac: 用户${userId}查询指定类目成就: ${targetCategory}${COLORS.RESET}`);
+    } else {
+      logger.info(`${COLORS.CYAN}mCat-ac: 用户${userId}查询全部成就${COLORS.RESET}`);
     }
     
     try {
       // 检查用户是否有录入记录
+      logger.info(`${COLORS.CYAN}mCat-ac: 检查用户记录文件: ${userFilePath}${COLORS.RESET}`);
       await fs.access(userFilePath)
+      logger.info(`${COLORS.CYAN}mCat-ac: 用户记录文件存在，继续处理${COLORS.RESET}`);
       
       // 直接调用比对函数，传入目标类目参数
+      logger.info(`${COLORS.CYAN}mCat-ac: 调用compareAchievements，目标类目: ${targetCategory || '全部'}${COLORS.RESET}`);
       await this.compareAchievements(e, userId, [], targetCategory)
     } catch (err) {
+      logger.error(`${COLORS.RED}mCat-ac: 检查成就记录失败: ${err.message}${COLORS.RESET}`);
       await e.reply('未发现已录入成就，请先进行#成就录入')
     }
   }

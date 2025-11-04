@@ -407,6 +407,7 @@ class AchievementCheck extends plugin {
           { command: '#成就录入', description: '开始成就录入流程，会提示输入分享码' },
           { command: '#成就录入[ID/名称]', description: '直接录入指定ID或名称的成就' },
           { command: '#成就查漏', description: '生成成就查漏报告，显示未完成的成就' },
+          { command: '#成就查漏[类目名]', description: '查询指定类目的未完成成就' },
           { command: '#成就重置', description: '重置当前用户的成就数据' },
           { command: '分享椰羊网站链接', description: '自动导入成就数据' }
         ],

@@ -1981,7 +1981,7 @@ class AchievementCheck extends plugin {
   }
   
   // 成就比对（优化版）
-  async compareAchievements (e, userId, progressInfo = []) {
+  async compareAchievements (e, userId, progressInfo = [], targetCategory = null) {
     try {
       // 保留开始成就比对的日志
       logger.info(`${COLORS.CYAN}mCat-ac: 开始对用户${userId}进行成就比对${COLORS.RESET}`);
@@ -2022,9 +2022,14 @@ class AchievementCheck extends plugin {
               const fileContent = await fs.readFile(filePath, 'utf8')
               const achievementData = JSON.parse(fileContent)
               
-              // 将该分类下的所有成就添加到总数组中
+              // 将该分类下的所有成就添加到总数组中，并添加分类信息
               if (achievementData?.achievements && Array.isArray(achievementData.achievements)) {
-                allAchievements.push(...achievementData.achievements)
+                const categoryAchievements = achievementData.achievements.map(ac => ({
+                  ...ac,
+                  categoryName: achievementData.name || category.name || '未分类',
+                  fileName: category.fileName
+                }))
+                allAchievements.push(...categoryAchievements)
               }
             } catch (err) {
               // 保留文件读取失败的警告日志
@@ -2062,10 +2067,24 @@ class AchievementCheck extends plugin {
         return
       }
       
+      // 处理类目筛选
+      const categoryFileNameMap = {
+        '天地万象': 'wonders_of_the_world.json'
+      }
+      
       for (const ac of achievements) {
         // 跳过特殊成就ID，不参与比对和显示
         if (ac.id === EXCLUDED_ACHIEVEMENT_ID) {
           continue
+        }
+        
+        // 如果指定了目标类目，则只处理该类目的成就
+        if (targetCategory) {
+          const targetFileName = categoryFileNameMap[targetCategory] || targetCategory
+          // 检查是否匹配类目名称或文件名
+          if (ac.categoryName !== targetCategory && (!ac.fileName || !ac.fileName.includes(targetFileName))) {
+            continue
+          }
         }
         
         if (!completedSet.has(ac.id)) {
@@ -2087,9 +2106,22 @@ class AchievementCheck extends plugin {
       // 清空进度信息，不需要发送进度
       progressInfo.length = 0;
       
+      // 排序：优先显示"天地万象"类目的成就
+      const sortedAchievements = [...incompleteAchievements].sort((a, b) => {
+        const categoryA = a.categoryName || '未分类'
+        const categoryB = b.categoryName || '未分类'
+        
+        // 天地万象优先
+        if (categoryA === '天地万象' && categoryB !== '天地万象') return -1
+        if (categoryA !== '天地万象' && categoryB === '天地万象') return 1
+        
+        // 其他情况按原顺序
+        return 0
+      })
+      
       // 优化：只显示少量未完成成就的预览，避免生成过多图片
       // 限制返回的未完成成就数量，默认显示前50个
-      const displayIncompleteAchievements = incompleteAchievements.slice(0, 50);
+      const displayIncompleteAchievements = sortedAchievements.slice(0, 50);
       
       await this.generateResultImages(e, {
         completedCount: completedCount,
@@ -2135,12 +2167,22 @@ class AchievementCheck extends plugin {
     const userId = e.user_id
     const userFilePath = path.join(__dirname, `data/UserLog/${userId}.json`)
     
+    // 解析指令，支持#成就查漏+[类目名]格式
+    let targetCategory = null;
+    const message = e.message?.[0]?.text || e.raw_message || '';
+    const categoryMatch = message.match(/^#成就查漏\+([^\s]+)/);
+    
+    if (categoryMatch && categoryMatch[1]) {
+      targetCategory = categoryMatch[1];
+      logger.info(`${COLORS.CYAN}mCat-ac: 用户${userId}查询指定类目成就: ${targetCategory}${COLORS.RESET}`);
+    }
+    
     try {
       // 检查用户是否有录入记录
       await fs.access(userFilePath)
       
-      // 直接调用比对函数
-      await this.compareAchievements(e, userId)
+      // 直接调用比对函数，传入目标类目参数
+      await this.compareAchievements(e, userId, [], targetCategory)
     } catch (err) {
       await e.reply('未发现已录入成就，请先进行#成就录入')
     }
